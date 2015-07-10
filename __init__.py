@@ -3,11 +3,11 @@
 /***************************************************************************
  BulkVectorExport
                                  A QGIS plugin
- Export map contents to specified format and CRS
+ Export vector layers
                              -------------------
-        begin                : 2013-01-21
-        copyright            : (C) 2013 by ViaMap Ltd.
-        email                : info@viamap.hu
+        begin                : 2015-07-10
+        copyright            : (C) 2015 by Simon Oberhammer
+        email                : simon@nekapuzer.at
  ***************************************************************************/
 
 /***************************************************************************

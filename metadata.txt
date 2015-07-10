@@ -9,13 +9,13 @@
 
 
 [general]
-name=Bulk vector export
+name=Bulk vector export SLD and geojson
 qgisMinimumVersion=2.0
-description=Export map contents to specified format and CRS
+description=Export map contents as SLD and geojson
 version=0.2
-author=ViaMap Ltd.
-author=Zoltan Siki
-email=info@viamap.hu
+author=ORFON
+author=Simon Oberhammer
+email=simon@nekapuzer.at
 
 # end of mandatory metadata
 
@@ -25,11 +25,11 @@ email=info@viamap.hu
 # changelog=
 
 # tags are comma separated with spaces allowed
-tags=vector,export,crs
+tags=vector,export,crs,sld,style
 
-homepage=http://www.viamap.hu
+homepage=
 tracker=
-repository=https://github.com/zsiki/bulkvectorexport
+repository=https://github.com/orfon/bulkvectorexportwithstyle
 icon=icon.png
 # experimental flag
 experimental=True

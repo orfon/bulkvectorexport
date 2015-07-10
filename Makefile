@@ -1,13 +1,13 @@
 #/***************************************************************************
 # BulkVectorExport
-# 
+#
 # Export map contents to specified format and CRS
 #                             -------------------
 #        begin                : 2013-01-21
 #        copyright            : (C) 2013 by ViaMap Ltd.
 #        email                : info@viamap.hu
 # ***************************************************************************/
-# 
+#
 #/***************************************************************************
 # *                                                                         *
 # *   This program is free software; you can redistribute it and/or modify  *
@@ -20,12 +20,12 @@
 # CONFIGURATION
 PLUGIN_UPLOAD = $(CURDIR)/plugin_upload.py
 
-# Makefile for a PyQGIS plugin 
+# Makefile for a PyQGIS plugin
 
 # translation
 SOURCES = bulkvectorexport.py ui_bulkvectorexport.py __init__.py bulkvectorexportdialog.py
 #TRANSLATIONS = i18n/bulkvectorexport_en.ts
-TRANSLATIONS = 
+TRANSLATIONS =
 
 # global
 
@@ -33,7 +33,7 @@ PLUGINNAME = bulkvectorexport
 
 PY_FILES = bulkvectorexport.py bulkvectorexportdialog.py __init__.py
 
-EXTRAS = icon.png 
+EXTRAS = icon.png
 
 UI_FILES = ui_bulkvectorexport.py
 
@@ -57,7 +57,7 @@ compile: $(UI_FILES) $(RESOURCE_FILES)
 # The deploy  target only works on unix like operating system where
 # the Python plugin directory is located at:
 # $HOME/.qgis/python/plugins
-deploy: compile doc transcompile
+deploy: compile transcompile
 	mkdir -p $(HOME)/.qgis/python/plugins/$(PLUGINNAME)
 	cp -vf $(PY_FILES) $(HOME)/.qgis/python/plugins/$(PLUGINNAME)
 	cp -vf $(UI_FILES) $(HOME)/.qgis/python/plugins/$(PLUGINNAME)
@@ -78,12 +78,12 @@ derase:
 
 # The zip target deploys the plugin and creates a zip file with the deployed
 # content. You can then upload the zip file on http://plugins.qgis.org
-zip: deploy dclean 
+zip: deploy dclean
 	rm -f $(PLUGINNAME).zip
 	cd $(HOME)/.qgis/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
-# Create a zip package of the plugin named $(PLUGINNAME).zip. 
-# This requires use of git (your plugin development directory must be a 
+# Create a zip package of the plugin named $(PLUGINNAME).zip.
+# This requires use of git (your plugin development directory must be a
 # git repository).
 # To use, pass a valid commit or tag as follows:
 #   make package VERSION=Version_0.3.2
@@ -113,5 +113,5 @@ clean:
 	rm $(UI_FILES) $(RESOURCE_FILES)
 
 # build documentation with sphinx
-doc: 
+doc:
 	cd help; make html

@@ -58,58 +58,6 @@
     <string>Save to dir:</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>101</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Output format</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="formatBox">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>10</y>
-     <width>271</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="layerCrsButton">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>70</y>
-     <width>101</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Layer CRS</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="projectCrsButton">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>70</y>
-     <width>121</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Project CRS</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="dirButton">
    <property name="geometry">
     <rect>

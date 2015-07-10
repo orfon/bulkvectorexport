@@ -37,19 +37,6 @@ class BulkVectorExportDialog(QtGui.QDialog):
         self.unsupportedDriverList = ['Memory', 'PostgreSQL', 'MySQL', 'ODBC', \
             'S57']
 
-    def showEvent(self, event):
-        if self.ui.formatBox.count() == 0:
-            # get available ogr driver names which can be created
-            #driverNameList = qgis.core.QgsVectorFileWriter.ogrDriverList()
-            driverNameList = []
-            for i in range(ogr.GetDriverCount()):
-                name = ogr.GetDriver(i).GetName()
-                if not name in driverNameList and \
-                    not name in self.unsupportedDriverList and \
-                    ogr.GetDriver(i).TestCapability(ogr.ODrCCreateDataSource):
-                    driverNameList.append(name)
-            self.ui.formatBox.addItems(sorted(driverNameList))
-
     def getDir(self):
         dirName = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.ui.dirEdit.setText(dirName)

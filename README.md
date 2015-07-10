@@ -1,4 +1,4 @@
-bulkvectorexport
+bulkvectorexportwithstyle
 ================
 
-QGIS plugin to export vector layers to selected format/crs
+QGIS plugin to export vector layers with style to geojson+SLD

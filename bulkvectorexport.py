@@ -5,9 +5,9 @@
                                  A QGIS plugin
  Export map contents to specified format and CRS
                               -------------------
-        begin                : 2013-01-21
-        copyright            : (C) 2013 by ViaMap Ltd.
-        email                : info@viamap.hu
+        begin                : 2015-07-10
+        copyright            : (C) 2015 by ORFON
+        email                : simon@nekapuzer.at
  ***************************************************************************/
 
 /***************************************************************************
@@ -24,10 +24,29 @@ from PyQt4 import QtCore, QtGui
 from osgeo import ogr
 from qgis.core import *
 import qgis.utils
+import os
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
 from bulkvectorexportdialog import BulkVectorExportDialog
+import json
+import zipfile
+
+def bounds(iface, layers):
+
+    extent = None
+    for layer in layers:
+        transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem("EPSG:3857"))
+        try:
+            layerExtent = transform.transform(layer.extent())
+        except QgsCsException:
+            layerExtent = QgsRectangle(-20026376.39, -20048966.10, 20026376.39, 20048966.10)
+        if extent is None:
+            extent = layerExtent
+        else:
+            extent.combineExtentWith(layerExtent)
+
+    return (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
 
 
 class BulkVectorExport:
@@ -59,7 +78,7 @@ class BulkVectorExport:
         # Create action that will start plugin configuration
         self.action = QtGui.QAction( \
             QtGui.QIcon(":/plugins/bulkvectorexport/icon.png"), \
-            u"Export map contents to specified format and CRS", \
+            u"Bulk export vectory layers", \
             self.iface.mainWindow())
         # connect the action to the run method
         QtCore.QObject.connect(self.action, QtCore.SIGNAL("triggered()"), self.run)
@@ -89,20 +108,19 @@ class BulkVectorExport:
                 QtGui.QMessageBox.critical(self.dlg, "BulkVectorExport", \
                     "No such directory : " + dirName)
                 return
-            # get ogr driver name
-            ogr_driver_name = self.dlg.ui.formatBox.currentText()
+            ogr_driver_name = "GeoJSON"
             print"Driver ogr name: " + ogr_driver_name
             layers = qgis.utils.iface.mapCanvas().layers()
+            project = QgsProject.instance()
+            mapInfo = {"name": project.title(), "layers": [], "bounds": []}
+            fileNames = []
             for layer in layers:
                 layerType = layer.type()
                 if layerType == QgsMapLayer.VectorLayer:
                     print 'Writing:' + layer.name()
                     layer_filename = dirName + layer.name()
                     print 'Filename: ' + layer_filename
-                    if self.dlg.ui.layerCrsButton.isChecked():
-                        crs = layer.crs()
-                    else:
-                        crs = qgis.utils.iface.mapCanvas().mapRenderer().destinationCrs()
+                    crs = QgsCoordinateReferenceSystem("EPSG:3857")
                     print "CRS selected: " + crs.description()
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, layer.dataProvider().encoding(), crs, ogr_driver_name)
                     print "Status: " + str(result2)
@@ -110,3 +128,29 @@ class BulkVectorExport:
                         QtGui.QMessageBox.warning(self.dlg, "BulkVectorExport",\
                             "Failed to export: " + layer.name() + \
                             " Status: " + str(result2))
+                    sld_filename = os.path.splitext( unicode( layer_filename ) )[ 0 ] + '.sld'
+                    print 'Filename: ' + sld_filename
+                    result3 = False
+                    layer.saveSldStyle(sld_filename)
+                    mapInfo['layers'].append({
+                        "title": str(layer.name()),
+                        "geojson": os.path.basename(layer_filename) + '.geojson',
+                        "sld": os.path.basename(sld_filename)
+                    })
+                    fileNames.append(layer_filename + '.geojson')
+                    fileNames.append(sld_filename)
+
+            mapInfo['bounds'] = bounds(self.iface, layers)
+            map_filename = dirName + 'map.json'
+            with open(map_filename, 'w') as outfile:
+                json.dump(mapInfo, outfile)
+
+            fileNames.append(map_filename)
+
+            ## zip all
+            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(project.fileName()) + '.zip', "w")
+
+            for fileName in fileNames:
+                zf.write(os.path.join(fileName), arcname=os.path.split(fileName)[1])
+                os.remove(fileName)
+            zf.close()
