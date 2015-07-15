@@ -32,20 +32,23 @@ from bulkvectorexportdialog import BulkVectorExportDialog
 import json
 import zipfile
 
-def bounds(iface, layers):
+def bounds(layers):
 
     extent = None
     for layer in layers:
-        transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem("EPSG:3857"))
-        try:
-            layerExtent = transform.transform(layer.extent())
-        except QgsCsException:
-            layerExtent = QgsRectangle(-20026376.39, -20048966.10, 20026376.39, 20048966.10)
-        if extent is None:
-            extent = layerExtent
-        else:
-            extent.combineExtentWith(layerExtent)
+        if layer.type() == 0:
+            transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('CRS84')) # WGS 84 / UTM zone 33N
+            try:
+                layerExtent = transform.transform(layer.extent())
+            except QgsCsException:
+                print "exception in transform layer srs"
+                layerExtent = QgsRectangle(-20026376.39, -20048966.10, 20026376.39, 20048966.10)
+            if extent is None:
+                extent = layerExtent
+            else:
+                extent.combineExtentWith(layerExtent)
 
+            print str([extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()])
     return (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
 
 
@@ -120,7 +123,7 @@ class BulkVectorExport:
                     print 'Writing:' + layer.name()
                     layer_filename = dirName + layer.name()
                     print 'Filename: ' + layer_filename
-                    crs = QgsCoordinateReferenceSystem("EPSG:3857")
+                    crs = QgsCoordinateReferenceSystem("CRS84")
                     print "CRS selected: " + crs.description()
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, layer.dataProvider().encoding(), crs, ogr_driver_name)
                     print "Status: " + str(result2)
@@ -140,8 +143,12 @@ class BulkVectorExport:
                     fileNames.append(layer_filename + '.geojson')
                     fileNames.append(sld_filename)
 
-            mapInfo['bounds'] = bounds(self.iface, layers)
-            map_filename = dirName + 'map.json'
+            mapInfo['bounds'] = bounds(layers)
+            mapInfo['maxzoom'] = 11;
+            mapInfo['minzoom'] = 6;
+            mapInfo['description'] = "";
+            mapInfo['attribution'] = "";
+            map_filename = dirName + 'metadata.json'
             with open(map_filename, 'w') as outfile:
                 json.dump(mapInfo, outfile)
 
