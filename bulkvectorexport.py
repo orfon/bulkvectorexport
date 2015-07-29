@@ -37,7 +37,7 @@ def bounds(layers):
     extent = None
     for layer in layers:
         if layer.type() == 0:
-            transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('CRS84')) # WGS 84 / UTM zone 33N
+            transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('EPSG:4326')) # WGS 84 / UTM zone 33N
             try:
                 layerExtent = transform.transform(layer.extent())
             except QgsCsException:
@@ -115,16 +115,15 @@ class BulkVectorExport:
             print"Driver ogr name: " + ogr_driver_name
             layers = qgis.utils.iface.mapCanvas().layers()
             project = QgsProject.instance()
-            mapInfo = {"name": project.title(), "layers": [], "bounds": []}
+            mapInfo = {"name": os.path.basename(project.fileName()), "layers": [], "bounds": []}
             fileNames = []
-            for layer in layers:
+            for layer in reversed(layers):
                 layerType = layer.type()
                 if layerType == QgsMapLayer.VectorLayer:
                     print 'Writing:' + layer.name()
                     layer_filename = dirName + layer.name()
                     print 'Filename: ' + layer_filename
-                    crs = QgsCoordinateReferenceSystem("CRS84")
-                    print "CRS selected: " + crs.description()
+                    crs = QgsCoordinateReferenceSystem("EPSG:4326")
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, layer.dataProvider().encoding(), crs, ogr_driver_name)
                     print "Status: " + str(result2)
                     if result2 != 0:
@@ -135,19 +134,29 @@ class BulkVectorExport:
                     print 'Filename: ' + sld_filename
                     result3 = False
                     layer.saveSldStyle(sld_filename)
+                    hasPopups = True
+                    try:
+                        layer.getFeatures().next()['html_exp']
+                    except KeyError:
+                        hasPopups = False
                     mapInfo['layers'].append({
                         "title": str(layer.name()),
                         "geojson": os.path.basename(layer_filename) + '.geojson',
-                        "sld": os.path.basename(sld_filename)
+                        "sld": os.path.basename(sld_filename),
+                        "hasPopups": hasPopups
                     })
                     fileNames.append(layer_filename + '.geojson')
                     fileNames.append(sld_filename)
 
             mapInfo['bounds'] = bounds(layers)
-            mapInfo['maxzoom'] = 11;
-            mapInfo['minzoom'] = 6;
+            mapInfo['maxZoom'] = 11;
+            mapInfo['minZoom'] = 6;
             mapInfo['description'] = "";
             mapInfo['attribution'] = "";
+            mapInfo['hasLayerControl'] = True
+            mapInfo['hasZoomControl'] = True
+            mapInfo['hasLayerLegend'] = True
+            mapInfo['basemap'] = 'bmapgrau';
             map_filename = dirName + 'metadata.json'
             with open(map_filename, 'w') as outfile:
                 json.dump(mapInfo, outfile)
@@ -155,7 +164,7 @@ class BulkVectorExport:
             fileNames.append(map_filename)
 
             ## zip all
-            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(project.fileName()) + '.zip', "w")
+            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(project.fileName()) + '.globus.zip', "w")
 
             for fileName in fileNames:
                 zf.write(os.path.join(fileName), arcname=os.path.split(fileName)[1])
