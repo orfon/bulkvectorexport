@@ -89,7 +89,7 @@ zip: deploy dclean
 #   make package VERSION=Version_0.3.2
 package: compile
 		rm -f $(PLUGINNAME).zip
-		git archive --prefix=$(PLUGINNAME)/ -o $(PLUGINNAME).zip $(VERSION)
+		git archive --prefix=$(PLUGINNAME)/ -o $(PLUGINNAME).zip master
 		echo "Created package: $(PLUGINNAME).zip"
 
 upload: zip
