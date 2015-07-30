@@ -29,7 +29,7 @@ TRANSLATIONS =
 
 # global
 
-PLUGINNAME = bulkvectorexport
+PLUGINNAME = bulkvectorexportwithstyle
 
 PY_FILES = bulkvectorexport.py bulkvectorexportdialog.py __init__.py
 
