@@ -9,9 +9,9 @@
 
 
 [general]
-name=Bulk vector export SLD and geojson
+name=Bulk vector export as SLD and GeoJson
 qgisMinimumVersion=2.0
-description=Export map contents as SLD and geojson
+description=Export all vector layers as geoJson and SLD.
 version=0.2
 author=ORFON
 author=Simon Oberhammer
