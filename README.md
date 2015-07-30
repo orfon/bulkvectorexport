@@ -1,4 +1,4 @@
 bulkvectorexportwithstyle
 ================
 
-QGIS plugin to export vector layers with style to geojson+SLD
+QGIS plugin to export all vector layers and their SLD styling.

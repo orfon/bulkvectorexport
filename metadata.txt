@@ -15,7 +15,7 @@ description=Export map contents as SLD and geojson
 version=0.2
 author=ORFON
 author=Simon Oberhammer
-email=simon@nekapuzer.at
+email=simon.oberhammer@orf.at
 
 # end of mandatory metadata
 
@@ -29,7 +29,7 @@ tags=vector,export,crs,sld,style
 
 homepage=
 tracker=
-repository=https://github.com/orfon/bulkvectorexportwithstyle
+repository=https://github.com/orfon/bulkvectorexport
 icon=icon.png
 # experimental flag
 experimental=True
