@@ -126,7 +126,7 @@ class BulkVectorExport:
                     layer_filename = tempPath + layer.name()
                     print 'Filename: ' + layer_filename
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
-                    result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, layer.dataProvider().encoding(), crs, ogr_driver_name)
+                    result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, "utf-8", crs, ogr_driver_name)
                     print "Status: " + str(result2)
                     if result2 != 0:
                         QtGui.QMessageBox.warning(self.dlg, "BulkVectorExport",\
