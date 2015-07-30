@@ -31,6 +31,7 @@ import resources_rc
 from bulkvectorexportdialog import BulkVectorExportDialog
 import json
 import zipfile
+import tempfile
 
 def bounds(layers):
 
@@ -116,12 +117,13 @@ class BulkVectorExport:
             layers = qgis.utils.iface.mapCanvas().layers()
             project = QgsProject.instance()
             mapInfo = {"name": os.path.basename(project.fileName()), "layers": [], "bounds": []}
+            tempPath = tempfile.mkdtemp('bulkexport') + '/'
             fileNames = []
             for layer in reversed(layers):
                 layerType = layer.type()
                 if layerType == QgsMapLayer.VectorLayer:
                     print 'Writing:' + layer.name()
-                    layer_filename = dirName + layer.name()
+                    layer_filename = tempPath + layer.name()
                     print 'Filename: ' + layer_filename
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, layer.dataProvider().encoding(), crs, ogr_driver_name)
@@ -157,7 +159,7 @@ class BulkVectorExport:
             mapInfo['hasZoomControl'] = True
             mapInfo['hasLayerLegend'] = True
             mapInfo['basemap'] = 'bmapgrau';
-            map_filename = dirName + 'metadata.json'
+            map_filename = tempPath + 'metadata.json'
             with open(map_filename, 'w') as outfile:
                 json.dump(mapInfo, outfile)
 
@@ -169,4 +171,5 @@ class BulkVectorExport:
             for fileName in fileNames:
                 zf.write(os.path.join(fileName), arcname=os.path.split(fileName)[1])
                 os.remove(fileName)
+            os.rmdir(tempPath)
             zf.close()
