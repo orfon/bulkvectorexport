@@ -145,7 +145,7 @@ class BulkVectorExport:
                         "title": str(layer.name()),
                         "geojson": os.path.basename(layer_filename) + '.geojson',
                         "sld": os.path.basename(sld_filename),
-                        "transparency": layer.layerTransparency(),
+                        "opacity":  1 - (layer.layerTransparency() / 100.0),
                         "hasPopups": hasPopups
                     })
                     fileNames.append(layer_filename + '.geojson')
