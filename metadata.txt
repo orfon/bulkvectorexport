@@ -28,8 +28,8 @@ email=simon.oberhammer@orf.at
 # tags are comma separated with spaces allowed
 tags=vector,export,crs,sld,style
 
-homepage=
-tracker=
+homepage=https://github.com/orfon/bulkvectorexport/
+tracker=https://github.com/orfon/bulkvectorexport/issues
 repository=https://github.com/orfon/bulkvectorexport
 icon=icon.png
 # experimental flag
