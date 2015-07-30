@@ -32,6 +32,7 @@ from bulkvectorexportdialog import BulkVectorExportDialog
 import json
 import zipfile
 import tempfile
+import shutil
 
 def bounds(layers):
 
@@ -52,6 +53,16 @@ def bounds(layers):
             print str([extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()])
     return (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
 
+def copySymbols(symbol, tempPath, fileNames):
+    for i in xrange(symbol.symbolLayerCount()):
+        sl = symbol.symbolLayer(i)
+        if isinstance(sl, QgsSvgMarkerSymbolLayerV2):
+            symbolPath = sl.path();
+            shutil.copy(symbolPath, tempPath)
+            print "Copying " + str(sl.path())
+            fileNames.append(tempPath + os.sep + os.path.basename(symbolPath))
+        else:
+            print "Ignoring " + str(sl)
 
 class BulkVectorExport:
 
@@ -117,11 +128,16 @@ class BulkVectorExport:
             layers = qgis.utils.iface.mapCanvas().layers()
             project = QgsProject.instance()
             mapInfo = {"name": os.path.basename(project.fileName()), "layers": [], "bounds": []}
-            tempPath = tempfile.mkdtemp('bulkexport') + '/'
+            tempPath = tempfile.mkdtemp('bulkexport') + os.sep
             fileNames = []
             for layer in reversed(layers):
                 layerType = layer.type()
                 if layerType == QgsMapLayer.VectorLayer:
+
+                    renderer = layer.rendererV2()
+                    if isinstance(renderer, QgsSingleSymbolRendererV2):
+                        copySymbols(renderer.symbol(), tempPath, fileNames)
+
                     print 'Writing:' + layer.name()
                     layer_filename = tempPath + layer.name()
                     print 'Filename: ' + layer_filename
