@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_bulkvectorexport.ui'
 #
-# Created: Fri Jul 10 15:05:14 2015
+# Created: Wed Jul 29 15:23:48 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -51,6 +51,6 @@ class Ui_BulkVectorExportDialog(object):
 
     def retranslateUi(self, BulkVectorExportDialog):
         BulkVectorExportDialog.setWindowTitle(_translate("BulkVectorExportDialog", "Dialog", None))
-        self.label.setText(_translate("BulkVectorExportDialog", "Save to dir:", None))
+        self.label.setText(_translate("BulkVectorExportDialog", "Export to:", None))
         self.dirButton.setText(_translate("BulkVectorExportDialog", "...", None))
 
