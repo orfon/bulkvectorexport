@@ -50,7 +50,6 @@ def bounds(layers):
             else:
                 extent.combineExtentWith(layerExtent)
 
-            print str([extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()])
     return (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
 
 def copySymbols(symbol, tempPath, fileNames):
@@ -124,7 +123,7 @@ class BulkVectorExport:
                     "No such directory : " + dirName)
                 return
             ogr_driver_name = "GeoJSON"
-            print"Driver ogr name: " + ogr_driver_name
+            print "Driver ogr name: " + ogr_driver_name
             layers = qgis.utils.iface.mapCanvas().layers()
             project = QgsProject.instance()
             mapInfo = {"name": os.path.basename(project.fileName()), "layers": [], "bounds": []}
@@ -135,8 +134,10 @@ class BulkVectorExport:
                 if layerType == QgsMapLayer.VectorLayer:
 
                     renderer = layer.rendererV2()
+                    hasIcon = False
                     if isinstance(renderer, QgsSingleSymbolRendererV2):
                         copySymbols(renderer.symbol(), tempPath, fileNames)
+                        hasIcon = True
 
                     print 'Writing:' + layer.name()
                     layer_filename = tempPath + layer.name()
@@ -162,7 +163,8 @@ class BulkVectorExport:
                         "geojson": os.path.basename(layer_filename) + '.geojson',
                         "sld": os.path.basename(sld_filename),
                         "opacity":  1 - (layer.layerTransparency() / 100.0),
-                        "hasPopups": hasPopups
+                        "hasPopups": hasPopups,
+                        "hasIcon": hasIcon
                     })
                     fileNames.append(layer_filename + '.geojson')
                     fileNames.append(sld_filename)
