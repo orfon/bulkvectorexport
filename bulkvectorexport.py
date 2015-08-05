@@ -33,6 +33,7 @@ import json
 import zipfile
 import tempfile
 import shutil
+import uuid
 
 def bounds(layers):
 
@@ -139,8 +140,8 @@ class BulkVectorExport:
                         copySymbols(renderer.symbol(), tempPath, fileNames)
                         hasIcon = True
 
-                    print 'Writing:' + layer.name()
-                    layer_filename = tempPath + layer.name()
+                    print 'Writing:' + unicode(layer.name())
+                    layer_filename = tempPath + unicode(uuid.uuid4())
                     print 'Filename: ' + layer_filename
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, "utf-8", crs, ogr_driver_name)
@@ -149,7 +150,7 @@ class BulkVectorExport:
                         QtGui.QMessageBox.warning(self.dlg, "BulkVectorExport",\
                             "Failed to export: " + layer.name() + \
                             " Status: " + str(result2))
-                    sld_filename = os.path.splitext( unicode( layer_filename ) )[ 0 ] + '.sld'
+                    sld_filename = os.path.basename(layer_filename) + '.sld'
                     print 'Filename: ' + sld_filename
                     result3 = False
                     layer.saveSldStyle(sld_filename)
@@ -159,7 +160,7 @@ class BulkVectorExport:
                     except KeyError:
                         hasPopups = False
                     mapInfo['layers'].append({
-                        "title": str(layer.name()),
+                        "title": unicode(layer.name()),
                         "geojson": os.path.basename(layer_filename) + '.geojson',
                         "sld": os.path.basename(sld_filename),
                         "opacity":  1 - (layer.layerTransparency() / 100.0),
@@ -185,7 +186,7 @@ class BulkVectorExport:
             fileNames.append(map_filename)
 
             ## zip all
-            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(project.fileName()) + '.globus.zip', "w")
+            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(unicode(project.fileName())) + '.globus.zip', "w")
 
             for fileName in fileNames:
                 zf.write(os.path.join(fileName), arcname=os.path.split(fileName)[1])
