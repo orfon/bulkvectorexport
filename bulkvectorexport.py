@@ -150,7 +150,7 @@ class BulkVectorExport:
                         QtGui.QMessageBox.warning(self.dlg, "BulkVectorExport",\
                             "Failed to export: " + layer.name() + \
                             " Status: " + str(result2))
-                    sld_filename = os.path.basename(layer_filename) + '.sld'
+                    sld_filename = os.path.join(tempPath, os.path.basename(layer_filename) + '.sld')
                     print 'Filename: ' + sld_filename
                     result3 = False
                     layer.saveSldStyle(sld_filename)
