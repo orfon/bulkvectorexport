@@ -154,17 +154,11 @@ class BulkVectorExport:
                     print 'Filename: ' + sld_filename
                     result3 = False
                     layer.saveSldStyle(sld_filename)
-                    hasPopups = True
-                    try:
-                        layer.getFeatures().next()['html_exp']
-                    except KeyError:
-                        hasPopups = False
                     mapInfo['layers'].append({
                         "title": unicode(layer.name()),
                         "geojson": os.path.basename(layer_filename) + '.geojson',
                         "sld": os.path.basename(sld_filename),
                         "opacity":  1 - (layer.layerTransparency() / 100.0),
-                        "hasPopups": hasPopups,
                         "hasIcon": hasIcon
                     })
                     fileNames.append(layer_filename + '.geojson')
@@ -175,6 +169,8 @@ class BulkVectorExport:
             mapInfo['minZoom'] = 6;
             mapInfo['description'] = "";
             mapInfo['attribution'] = "";
+            mapInfo['popupTemplate'] = "";
+            mapInfo['popupLayerIndex'] = -1;
             mapInfo['hasLayerControl'] = True
             mapInfo['hasZoomControl'] = True
             mapInfo['hasLayerLegend'] = True
