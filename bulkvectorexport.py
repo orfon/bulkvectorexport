@@ -164,12 +164,28 @@ class BulkVectorExport:
                     fileNames.append(layer_filename + '.geojson')
                     fileNames.append(sld_filename)
 
+            ## initial bounding box is visible extent
+            canvas = self.iface.mapCanvas()
+            canvasExtent = canvas.extent()
+            crsDest = QgsCoordinateReferenceSystem('EPSG:4326')
+            try:
+                crsSrc = canvas.mapSettings().destinationCrs()
+            except:
+                crsSrc = canvas.mapRenderer().destinationCrs()
+            xform = QgsCoordinateTransform(crsSrc, crsDest)
+            canvasExtentTransformed = xform.transform(canvasExtent)
+
+            initialBounds = [canvasExtentTransformed.xMinimum(), canvasExtentTransformed.yMinimum(),
+                            canvasExtentTransformed.xMaximum(), canvasExtentTransformed.yMaximum()]
+
             mapInfo['bounds'] = bounds(layers)
             mapInfo['maxZoom'] = 11;
             mapInfo['minZoom'] = 6;
             mapInfo['description'] = "";
             mapInfo['attribution'] = "";
             mapInfo['popupTemplate'] = "";
+            mapInfo['initialBounds'] = initialBounds;
+            mapInfo['limitedInitialBounds'] = True
             mapInfo['popupLayerIndex'] = -1;
             mapInfo['hasLayerControl'] = True
             mapInfo['hasZoomControl'] = True
