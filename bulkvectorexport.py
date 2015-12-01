@@ -39,7 +39,7 @@ def bounds(layers):
 
     extent = None
     for layer in layers:
-        if layer.type() == 0:
+        if layer.type() == QgsMapLayer.VectorLayer or layer.type() == QgsMapLayer.RasterLayer:
             transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('EPSG:4326')) # WGS 84 / UTM zone 33N
             try:
                 layerExtent = transform.transform(layer.extent())
@@ -130,20 +130,20 @@ class BulkVectorExport:
             mapInfo = {"name": os.path.basename(project.fileName()), "layers": [], "bounds": []}
             tempPath = tempfile.mkdtemp('bulkexport') + os.sep
             fileNames = []
+            crs = QgsCoordinateReferenceSystem("EPSG:4326")
             for layer in reversed(layers):
+                print 'Writing:' + unicode(layer.name())
+                layer_filename = tempPath + unicode(uuid.uuid4())
+                print 'Filename: ' + layer_filename
                 layerType = layer.type()
                 if layerType == QgsMapLayer.VectorLayer:
-
+                    print 'VectorLayer'
                     renderer = layer.rendererV2()
                     hasIcon = False
                     if isinstance(renderer, QgsSingleSymbolRendererV2):
                         copySymbols(renderer.symbol(), tempPath, fileNames)
                         hasIcon = True
 
-                    print 'Writing:' + unicode(layer.name())
-                    layer_filename = tempPath + unicode(uuid.uuid4())
-                    print 'Filename: ' + layer_filename
-                    crs = QgsCoordinateReferenceSystem("EPSG:4326")
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, "utf-8", crs, ogr_driver_name)
                     print "Status: " + str(result2)
                     if result2 != 0:
@@ -152,7 +152,6 @@ class BulkVectorExport:
                             " Status: " + str(result2))
                     sld_filename = os.path.join(tempPath, os.path.basename(layer_filename) + '.sld')
                     print 'Filename: ' + sld_filename
-                    result3 = False
                     layer.saveSldStyle(sld_filename)
                     mapInfo['layers'].append({
                         "title": unicode(layer.name()),
@@ -163,6 +162,23 @@ class BulkVectorExport:
                     })
                     fileNames.append(layer_filename + '.geojson')
                     fileNames.append(sld_filename)
+                elif layerType == QgsMapLayer.RasterLayer:
+                    print 'RasterLayer'
+                    pipe = qgis.core.QgsRasterPipe()
+                    pipe.set(layer.dataProvider())
+                    pipe.set(layer.renderer())
+                    rasterWriter = qgis.core.QgsRasterFileWriter(layer_filename + '.tif')
+                    width, height, extent = layer.width(), layer.height(), layer.extent()
+                    print 'exporting width, height, extend' + str(width) + '/' + str(height) + '/' + str(extent)
+                    resultWriter = rasterWriter.writeRaster(pipe, width, height, extent, crs)
+                    if resultWriter != 0:
+                        QtGui.QMessageBox.warning(self.dlg, "BulkVectorExport", "Failed to export: " + layer.name() + " Status: " + str(resultWriter));
+                    mapInfo['layers'].append({
+                        "title": unicode(layer.name()),
+                        "tif": os.path.basename(layer_filename) + '.tif',
+                        "opacity": 1
+                    });
+                    fileNames.append(layer_filename + '.tif');
 
             ## initial bounding box is visible extent
             canvas = self.iface.mapCanvas()
