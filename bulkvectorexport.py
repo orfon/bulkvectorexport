@@ -45,7 +45,7 @@ def bounds(layers):
                 layerExtent = transform.transform(layer.extent())
             except QgsCsException:
                 print "exception in transform layer srs"
-                layerExtent = QgsRectangle(-180, -90, 180, 90)
+                layerExtent = QgsRectangle(9.217428960892743, 46.17558482914839, 17.61616172070659, 49.102251936551994)
             if extent is None:
                 extent = layerExtent
             else:
