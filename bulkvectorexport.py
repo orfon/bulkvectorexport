@@ -39,7 +39,7 @@ def bounds(layers):
 
     extent = None
     for layer in layers:
-        if layer.type() == 0:
+        if layer.type() == QgsMapLayer.VectorLayer:
             transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('EPSG:4326')) # WGS 84 / UTM zone 33N
             try:
                 layerExtent = transform.transform(layer.extent())
