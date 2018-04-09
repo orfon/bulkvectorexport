@@ -144,6 +144,7 @@ class BulkVectorExport:
                     layer_filename = tempPath + unicode(uuid.uuid4())
                     print 'Filename: ' + layer_filename
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
+                    # layerOptions=['COORDINATE_PRECISION=3']
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, "utf-8", crs, ogr_driver_name)
                     print "Status: " + str(result2)
                     if result2 != 0:
