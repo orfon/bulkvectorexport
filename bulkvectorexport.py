@@ -19,16 +19,22 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import print_function
+from __future__ import absolute_import
 # Import the PyQt and QGIS libraries
-from PyQt4 import QtCore, QtGui
+from builtins import str
+from builtins import range
+from builtins import object
+from qgis.PyQt import QtCore, QtGui, QtWidgets
+from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeatureRequest, QgsVectorLayer, QgsMapLayerProxyModel, QgsProject
 from osgeo import ogr
 from qgis.core import *
 import qgis.utils
 import os
 # Initialize Qt resources from file resources.py
-import resources_rc
+from . import resources_rc
 # Import the code for the dialog
-from bulkvectorexportdialog import BulkVectorExportDialog
+from .bulkvectorexportdialog import BulkVectorExportDialog
 import json
 import zipfile
 import tempfile
@@ -39,13 +45,13 @@ def bounds(layers):
 
     extent = None
     for layer in layers:
-        if layer.type() == QgsMapLayer.VectorLayer:
-            transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('EPSG:4326')) # WGS 84 / UTM zone 33N
+        if layer.type() == 0:
+            transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('EPSG:4326'), QgsProject.instance()) # WGS 84 / UTM zone 33N
             try:
                 layerExtent = transform.transform(layer.extent())
             except QgsCsException:
-                print "exception in transform layer srs"
-                layerExtent = QgsRectangle(9.217428960892743, 46.17558482914839, 17.61616172070659, 49.102251936551994)
+                print("exception in transform layer srs")
+                layerExtent = QgsRectangle(-180, -90, 180, 90)
             if extent is None:
                 extent = layerExtent
             else:
@@ -54,23 +60,23 @@ def bounds(layers):
     return (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
 
 def copySymbols(symbol, tempPath, fileNames):
-    for i in xrange(symbol.symbolLayerCount()):
+    for i in range(symbol.symbolLayerCount()):
         sl = symbol.symbolLayer(i)
-        if isinstance(sl, QgsSvgMarkerSymbolLayerV2):
+        if isinstance(sl, QgsSvgMarkerSymbolLayer):
             symbolPath = sl.path();
             shutil.copy(symbolPath, tempPath)
-            print "Copying " + str(sl.path())
+            print("Copying " + str(sl.path()))
             fileNames.append(tempPath + os.sep + os.path.basename(symbolPath))
         else:
-            print "Ignoring " + str(sl)
+            print("Ignoring " + str(sl))
 
-class BulkVectorExport:
+class BulkVectorExport(object):
 
     def __init__(self, iface):
         # Save reference to the QGIS interface
         self.iface = iface
         # initialize plugin directory
-        self.plugin_dir = QtCore.QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/bulkvectorexport"
+        self.plugin_dir = QtCore.QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path() + "/python/plugins/bulkvectorexport"
         # initialize locale
         localePath = ""
         locale = QtCore.QSettings().value("locale/userLocale")[0:2]
@@ -88,15 +94,17 @@ class BulkVectorExport:
 
         # Create the dialog (after translation) and keep reference
         self.dlg = BulkVectorExportDialog()
+        # Set CRS
+        self.epsg4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 
     def initGui(self):
         # Create action that will start plugin configuration
-        self.action = QtGui.QAction( \
-            QtGui.QIcon(":/plugins/bulkvectorexport/icon.png"), \
-            u"Bulk export vectory layers", \
+        self.action = QtWidgets.QAction(
+            QtGui.QIcon(':/plugins/bulkvectorexportwithstyle/icon.png'),
+            u"Bulk export vector layers",
             self.iface.mainWindow())
         # connect the action to the run method
-        QtCore.QObject.connect(self.action, QtCore.SIGNAL("triggered()"), self.run)
+        self.action.triggered.connect(self.run)
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
@@ -120,11 +128,11 @@ class BulkVectorExport:
             if dirName[len(dirName)-1] != "/":
                 dirName = dirName + "/"
             if not QtCore.QFileInfo(dirName).isDir():
-                QtGui.QMessageBox.critical(self.dlg, "BulkVectorExport", \
+                QtWidgets.QMessageBox.critical(self.dlg, "BulkVectorExport", \
                     "No such directory : " + dirName)
                 return
             ogr_driver_name = "GeoJSON"
-            print "Driver ogr name: " + ogr_driver_name
+            print("Driver ogr name: " + ogr_driver_name)
             layers = qgis.utils.iface.mapCanvas().layers()
             project = QgsProject.instance()
             mapInfo = {"name": os.path.basename(project.fileName()), "layers": [], "bounds": []}
@@ -134,32 +142,31 @@ class BulkVectorExport:
                 layerType = layer.type()
                 if layerType == QgsMapLayer.VectorLayer:
 
-                    renderer = layer.rendererV2()
+                    renderer = layer.renderer()
                     hasIcon = False
-                    if isinstance(renderer, QgsSingleSymbolRendererV2):
+                    if isinstance(renderer, QgsSingleSymbolRenderer):
                         copySymbols(renderer.symbol(), tempPath, fileNames)
                         hasIcon = True
 
-                    print 'Writing:' + unicode(layer.name())
-                    layer_filename = tempPath + unicode(uuid.uuid4())
-                    print 'Filename: ' + layer_filename
+                    print('Writing:' + str(layer.name()))
+                    layer_filename = tempPath + str(uuid.uuid4())
+                    print('Filename: ' + layer_filename)
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
-                    # layerOptions=['COORDINATE_PRECISION=3']
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, "utf-8", crs, ogr_driver_name)
-                    print "Status: " + str(result2)
-                    if result2 != 0:
-                        QtGui.QMessageBox.warning(self.dlg, "BulkVectorExport",\
+                    print("Status: " + str(result2))
+                    if result2[0] != 0:
+                        QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
                             "Failed to export: " + layer.name() + \
                             " Status: " + str(result2))
                     sld_filename = os.path.join(tempPath, os.path.basename(layer_filename) + '.sld')
-                    print 'Filename: ' + sld_filename
+                    print('Filename: ' + sld_filename)
                     result3 = False
                     layer.saveSldStyle(sld_filename)
                     mapInfo['layers'].append({
-                        "title": unicode(layer.name()),
+                        "title": str(layer.name()),
                         "geojson": os.path.basename(layer_filename) + '.geojson',
                         "sld": os.path.basename(sld_filename),
-                        "opacity":  1 - (layer.layerTransparency() / 100.0),
+                        "opacity":  1 - (layer.opacity() / 100.0),
                         "hasIcon": hasIcon
                     })
                     fileNames.append(layer_filename + '.geojson')
@@ -168,12 +175,12 @@ class BulkVectorExport:
             ## initial bounding box is visible extent
             canvas = self.iface.mapCanvas()
             canvasExtent = canvas.extent()
-            crsDest = QgsCoordinateReferenceSystem('EPSG:4326')
+            crsDest = QgsCoordinateReferenceSystem("EPSG:4326")
             try:
                 crsSrc = canvas.mapSettings().destinationCrs()
             except:
                 crsSrc = canvas.mapRenderer().destinationCrs()
-            xform = QgsCoordinateTransform(crsSrc, crsDest)
+            xform = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
             canvasExtentTransformed = xform.transform(canvasExtent)
 
             initialBounds = [canvasExtentTransformed.xMinimum(), canvasExtentTransformed.yMinimum(),
@@ -199,7 +206,7 @@ class BulkVectorExport:
             fileNames.append(map_filename)
 
             ## zip all
-            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(unicode(project.fileName())) + '.globus.zip', "w")
+            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(str(project.fileName())) + '.globus.zip', "w")
 
             for fileName in fileNames:
                 zf.write(os.path.join(fileName), arcname=os.path.split(fileName)[1])

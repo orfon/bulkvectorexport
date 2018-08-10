@@ -20,8 +20,9 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
+from __future__ import absolute_import
 
 def classFactory(iface):
     # load BulkVectorExport class from file BulkVectorExport
-    from bulkvectorexport import BulkVectorExport
+    from .bulkvectorexport import BulkVectorExport
     return BulkVectorExport(iface)

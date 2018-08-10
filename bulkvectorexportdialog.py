@@ -20,23 +20,24 @@
  ***************************************************************************/
 """
 
-from PyQt4 import QtCore, QtGui
-from ui_bulkvectorexport import Ui_BulkVectorExportDialog
+from builtins import str
+from qgis.PyQt import QtCore, QtGui, QtWidgets
+from .ui_bulkvectorexport import Ui_BulkVectorExportDialog
 from osgeo import ogr
 # create the dialog for zoom to point
 
 
-class BulkVectorExportDialog(QtGui.QDialog):
+class BulkVectorExportDialog(QtWidgets.QDialog):
     def __init__(self):
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         # Set up the user interface from Designer.
         self.ui = Ui_BulkVectorExportDialog()
         self.ui.setupUi(self)
         # dir button push event
-        QtCore.QObject.connect(self.ui.dirButton, QtCore.SIGNAL('clicked()'), self.getDir)
+        self.ui.dirButton.clicked.connect(self.getDir)
         self.unsupportedDriverList = ['Memory', 'PostgreSQL', 'MySQL', 'ODBC', \
             'S57']
 
     def getDir(self):
-        dirName = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        dirName = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.ui.dirEdit.setText(dirName)
