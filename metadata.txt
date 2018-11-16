@@ -17,7 +17,7 @@ tracker=https://github.com/orfon/bulkvectorexport/issues
 repository=https://github.com/orfon/bulkvectorexport
 icon=img/icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version
 deprecated=False
