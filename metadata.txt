@@ -1,6 +1,6 @@
 [general]
 name=Bulk vector export as SLD and GeoJson
-qgisMinimumVersion=2.99
+qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=Export all vector layers as geoJson and SLD.
 version=0.4
