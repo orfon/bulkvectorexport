@@ -1,27 +1,28 @@
 [general]
 name=Bulk vector export as SLD and GeoJson
-qgisMinimumVersion=3.0
+qgisMinimumVersion=2.99
 qgisMaximumVersion=3.99
 description=Export all vector layers as geoJson and SLD.
-version=0.4
+version=0.5
 author=Simon Oberhammer, Günter Hack
 email=simon.oberhammer@orf.at
 
-about=This plugin exports all vector layers as geoJson with their SLD styling. The resulting files are zipped into a file named after the QGIS project. The layer ordering and additional information is stored in a metadata.json.
+about=This plugin exports all vector layers as geoJson with their SLD styling. Active raster layers are exported according to their position in the layer stack as multiband GeoTIFFs (This also goes for basemap tiles so you might want to uncheck basemap layers before exporting). The resulting files are zipped into a file named after the QGIS project. The layer order and additional information is stored in a metadata.json.
 
 # tags are comma separated with spaces allowed
-tags=vector,export,crs,sld,style
+tags=vector,raster,geotiff,export,crs,sld,style
 
 homepage=https://github.com/orfon/bulkvectorexport/
 tracker=https://github.com/orfon/bulkvectorexport/issues
 repository=https://github.com/orfon/bulkvectorexport
 icon=img/icon.png
 # experimental flag
-experimental=False
+experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version
 deprecated=False
 
 changelog=
+	0.5	Export of active raster layers as multiband GeoTIFF
 	0.4 Code refactored for QGIS 3.0
 	0.3 First version uploaded to QGIS plugin repository
