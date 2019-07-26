@@ -27,7 +27,7 @@ from builtins import range
 from builtins import object
 from qgis.PyQt import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeatureRequest, QgsVectorLayer, QgsRasterLayer,  QgsMapLayerProxyModel, QgsProject
+from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeatureRequest, QgsVectorLayer, QgsRasterLayer,  QgsMapLayerProxyModel, QgsProject, QgsRasterProjector
 from osgeo import ogr
 from qgis.core import *
 import qgis.utils
@@ -191,9 +191,11 @@ class BulkVectorExport(object):
                     provider = layer.dataProvider()
                     file_writer = qgis.core.QgsRasterFileWriter(layer_filename_r)
                     pipe = QgsRasterPipe()
-                    pipe.set(provider.clone())
-                    pipe.set(renderer.clone())
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
+                    projector = QgsRasterProjector(provider.crs(), crs);
+                    pipe.set(provider.clone())
+                    pipe.insert(2, projector);
+                    #pipe.set(renderer.clone())
                     result4 = file_writer.writeRaster(pipe, provider.xSize(), provider.ySize(), provider.extent(), crs)
                     print("Status: " + str(result4))
                     if result4 != 0:
