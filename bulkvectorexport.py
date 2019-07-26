@@ -192,11 +192,9 @@ class BulkVectorExport(object):
                     file_writer = qgis.core.QgsRasterFileWriter(layer_filename_r)
                     pipe = QgsRasterPipe()
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
-                    projector = QgsRasterProjector(provider.crs(), crs);
-                    pipe.set(provider.clone())
-                    pipe.insert(2, projector);
-                    #pipe.set(renderer.clone())
-                    result4 = file_writer.writeRaster(pipe, provider.xSize(), provider.ySize(), provider.extent(), crs)
+                    xform = QgsCoordinateTransform(layer.crs(), crs, QgsProject.instance())
+                    projected_extent = xform.transformBoundingBox(provider.extent())
+                    result4 = file_writer.writeRaster(pipe, provider.xSize(), provider.ySize(), projected_extent, crs, project.transformContext())
                     print("Status: " + str(result4))
                     if result4 != 0:
                         QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
