@@ -191,6 +191,7 @@ class BulkVectorExport(object):
                     provider = layer.dataProvider()
                     file_writer = qgis.core.QgsRasterFileWriter(layer_filename_r)
                     pipe = QgsRasterPipe()
+                    pipe.set(provider.clone())
                     crs = QgsCoordinateReferenceSystem("EPSG:4326")
                     xform = QgsCoordinateTransform(layer.crs(), crs, QgsProject.instance())
                     projected_extent = xform.transformBoundingBox(provider.extent())
