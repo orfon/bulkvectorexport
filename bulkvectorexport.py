@@ -189,14 +189,19 @@ class BulkVectorExport(object):
                     layer_filename_r = tempPath + str(uuid.uuid4()) + '.tif'
                     print('Filename: ' + layer_filename_r)
                     provider = layer.dataProvider()
-                    file_writer = qgis.core.QgsRasterFileWriter(layer_filename_r)
-                    pipe = QgsRasterPipe()
-                    pipe.set(provider.clone())
-                    crs = QgsCoordinateReferenceSystem("EPSG:4326")
-                    xform = QgsCoordinateTransform(layer.crs(), crs, QgsProject.instance())
-                    projected_extent = xform.transformBoundingBox(provider.extent())
-                    result4 = file_writer.writeRaster(pipe, provider.xSize(), provider.ySize(), projected_extent, crs, project.transformContext())
-                    print("Status: " + str(result4))
+                    src_crs = layer.crs()
+                    dst_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+                    source_path = " -of GTiff " + provider.dataSourceUri()
+                    cmd = "gdalwarp -overwrite -r bilinear -s_srs EPSG:" + \
+                                            str(src_crs.postgisSrid()) + \
+                                            " -t_srs EPSG:" + \
+                                            str(dst_crs.postgisSrid()) + \
+                                            " " + \
+                                            source_path + \
+                                            " " + \
+                                            layer_filename_r
+                    result4 = os.system(cmd)
+                    print("geotiff export Status: " + str(result4))
                     if result4 != 0:
                         QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
                             "Failed to export: " + layer.name() + \
