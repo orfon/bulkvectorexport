@@ -27,7 +27,8 @@ from builtins import range
 from builtins import object
 from qgis.PyQt import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeatureRequest, QgsVectorLayer, QgsRasterLayer,  QgsMapLayerProxyModel, QgsProject, QgsRasterProjector
+from qgis.core import (Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeatureRequest, QgsVectorLayer, QgsRasterLayer,  QgsMapLayerProxyModel, QgsProject, QgsRasterProjector, QgsProcessingAlgorithm, QgsProcessingParameterNumber, QgsProcessingParameterFeatureSource,QgsProcessingParameterFeatureSink)
+from qgis import processing
 from osgeo import ogr
 from qgis.core import *
 import qgis.utils
@@ -42,6 +43,7 @@ import tempfile
 import shutil
 import glob
 import uuid
+
 
 def bounds(layers):
 
@@ -182,27 +184,29 @@ class BulkVectorExport(object):
             fileNames = []
             for layer in reversed(layers):
                 layerType = layer.type()
-                if layerType == QgsMapLayer.RasterLayer:
+                provider = layer.dataProvider()
+                if layerType == QgsMapLayer.RasterLayer and ".png" not in provider.dataSourceUri() :
                     renderer = layer.renderer()
                     hasIcon = False
                     print('Writing: ' + str(layer.name()))
                     layer_filename_r = tempPath + str(uuid.uuid4()) + '.tif'
                     print('Filename: ' + layer_filename_r)
-                    provider = layer.dataProvider()
-                    src_crs = layer.crs()
+                    src_crs = QgsProcessingFeatureSourceDefinition()
                     dst_crs = QgsCoordinateReferenceSystem("EPSG:4326")
                     source_path = " -of GTiff " + provider.dataSourceUri()
-                    cmd = "gdalwarp -overwrite -r bilinear -s_srs EPSG:" + \
-                                            str(src_crs.postgisSrid()) + \
-                                            " -t_srs EPSG:" + \
-                                            str(dst_crs.postgisSrid()) + \
-                                            " " + \
-                                            source_path + \
-                                            " " + \
-                                            layer_filename_r
-                    result4 = os.system(cmd)
+                    algresult = processing.run("gdal:warpreproject", {
+                        'INPUT': str(layer.name()),
+                        'SOURCE_CRS': str(layer.name()),
+                        'TARGET_CRS': dst_crs,
+                        'RESAMPLING': 1,
+                        'NODATA': 999,
+                        'OPTIONS': "COMPRESS=NONE",
+                        'DATA_TYPE': 0,
+                        'MULTITHREADING': True,
+                        'OUTPUT': layer_filename_r})
+                    result4 = algresult['OUTPUT']
                     print("geotiff export Status: " + str(result4))
-                    if result4 != 0:
+                    if result4 == 0:
                         QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
                             "Failed to export: " + layer.name() + \
                             "Status: " + str(result4))
@@ -221,8 +225,17 @@ class BulkVectorExport(object):
                     print('Writing:' + str(layer.name()))
                     layer_filename = tempPath + str(uuid.uuid4())
                     print('Filename: ' + layer_filename)
-                    crs = QgsCoordinateReferenceSystem("EPSG:4326")
-                    result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormat(layer, layer_filename, "utf-8", crs, ogr_driver_name)
+                    coordinateTransformContext = QgsProject.instance().transformContext()
+                    context = QgsCoordinateTransformContext()
+                    ref_crs = layer.crs()
+                    dest_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+                    context.addCoordinateOperation(ref_crs, dest_crs, "+proj=noop")
+                    save_options = QgsVectorFileWriter.SaveVectorOptions()
+                    save_options.driverName = "GeoJSON"
+                    save_options.layerName = layer_filename
+                    save_options.ct = QgsCoordinateTransform(ref_crs,dest_crs,coordinateTransformContext)
+                    save_options.fileEncoding = "UTF-8"
+                    result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormatV2(layer, layer_filename, context, save_options)
                     print("Status: " + str(result2))
                     if result2[0] != 0:
                         QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
@@ -291,3 +304,5 @@ class BulkVectorExport(object):
 
             shutil.rmtree(tempPath, ignore_errors=True, onerror=None)
             zf.close()
+            QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
+                "Export successful!")

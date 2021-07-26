@@ -1,13 +1,13 @@
 [general]
 name=Bulk vector export as SLD and GeoJson
-qgisMinimumVersion=2.99
+qgisMinimumVersion=3.10.3
 qgisMaximumVersion=3.99
-description=Export all vector layers as geoJson and SLD.
-version=0.5
+description=Export all vector layers as GeoJSON and SLD.
+version=0.6
 author=Simon Oberhammer, Günter Hack
 email=simon.oberhammer@orf.at
 
-about=This plugin exports all vector layers as geoJson with their SLD styling. Active raster layers are exported according to their position in the layer stack as multiband GeoTIFFs (This also goes for basemap tiles so you might want to uncheck basemap layers before exporting). The resulting files are zipped into a file named after the QGIS project. The layer order and additional information is stored in a metadata.json.
+about=This plugin exports all vector layers as GeoJSON with their SLD styling. Active raster layers are exported according to their position in the layer stack as multiband GeoTIFFs. The resulting files are zipped into a file named after the QGIS project. The layer order and additional information is stored in a metadata.json. Basemap PNG tiles are ignored at export.
 
 # tags are comma separated with spaces allowed
 tags=vector,raster,geotiff,export,crs,sld,style
@@ -17,12 +17,14 @@ tracker=https://github.com/orfon/bulkvectorexport/issues
 repository=https://github.com/orfon/bulkvectorexport
 icon=img/icon.png
 # experimental flag
-experimental=True
+experimental=False
 
-# deprecated flag (applies to the whole plugin, not just a single version
+# deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
 changelog=
+	0.6 Update to QgsVectorFileWriter.writeAsVectorFormatV2 for exporting vector layers. Ignores XYZ basemaps with PNG tiles at export.
+	0.5.1 Switch from GDAL to QGIS Processing for raster layer export to mitigate export problems on some Windows 10 machines
 	0.5	Export of active raster layers as multiband GeoTIFF
 	0.4 Code refactored for QGIS 3.0
 	0.3 First version uploaded to QGIS plugin repository
