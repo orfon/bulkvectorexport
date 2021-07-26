@@ -24,7 +24,6 @@ PLUGIN_UPLOAD = $(CURDIR)/plugin_upload.py
 
 # translation
 SOURCES = bulkvectorexport.py ui_bulkvectorexport.py __init__.py bulkvectorexportdialog.py
-#TRANSLATIONS = i18n/bulkvectorexport_en.ts
 TRANSLATIONS =
 
 # global
@@ -39,17 +38,15 @@ UI_FILES = ui_bulkvectorexport.py
 
 RESOURCE_FILES = resources_rc.py
 
-HELP = help/build/html
-
 default: compile
 
 compile: $(UI_FILES) $(RESOURCE_FILES)
 
 %_rc.py : %.qrc
-	pyrcc4 -o $*_rc.py  $<
+	pyrcc5 -o $*_rc.py  $<
 
 %.py : %.ui
-	pyuic4 -o $@ $<
+	pyuic5 -o $@ $<
 
 %.qm : %.ts
 	lrelease $<
@@ -63,8 +60,6 @@ deploy: compile transcompile
 	cp -vf $(UI_FILES) $(HOME)/.qgis/python/plugins/$(PLUGINNAME)
 	cp -vf $(RESOURCE_FILES) $(HOME)/.qgis/python/plugins/$(PLUGINNAME)
 	cp -vf $(EXTRAS) $(HOME)/.qgis/python/plugins/$(PLUGINNAME)
-	cp -vfr i18n $(HOME)/.qgis/python/plugins/$(PLUGINNAME)
-	cp -vfr $(HELP) $(HOME)/.qgis/python/plugins/$(PLUGINNAME)/help
 
 # The dclean target removes compiled python files from plugin directory
 # also delets any .svn entry
@@ -104,14 +99,6 @@ transup:
 # compile translation files into .qm binary format
 transcompile: $(TRANSLATIONS:.ts=.qm)
 
-# transclean
-# deletes all .qm files
-transclean:
-	rm -f i18n/*.qm
-
 clean:
 	rm $(UI_FILES) $(RESOURCE_FILES)
 
-# build documentation with sphinx
-doc:
-	cd help; make html
