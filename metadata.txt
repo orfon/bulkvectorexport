@@ -3,7 +3,7 @@ name=Bulk vector export as SLD and GeoJson
 qgisMinimumVersion=3.10.3
 qgisMaximumVersion=3.99
 description=Export all vector layers as GeoJSON and SLD.
-version=0.6
+version=0.7
 author=Simon Oberhammer, Günter Hack
 email=simon.oberhammer@orf.at
 
@@ -22,7 +22,17 @@ experimental=False
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
+# Qt6
+supportsQt6=True
+
 changelog=
+	0.7 Enabled Qt6 
+	0.6.8 COORDINATE_PRECISION for GeoJSON vector layer export dialled down from 15 to 6
+	0.6.7 Bugfix: Raster output does not change nodata values
+	0.6.6 Bugfixes
+	0.6.5 Added SLD export for data raster layers
+	0.6.4 Added compression option to GeoTIFF output
+	0.6.1 Deleted legacy output from metadata.json
 	0.6 Update to QgsVectorFileWriter.writeAsVectorFormatV2 for exporting vector layers. Ignores XYZ basemaps with PNG tiles at export.
 	0.5.1 Switch from GDAL to QGIS Processing for raster layer export to mitigate export problems on some Windows 10 machines
 	0.5	Export of active raster layers as multiband GeoTIFF

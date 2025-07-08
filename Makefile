@@ -24,6 +24,7 @@ PLUGIN_UPLOAD = $(CURDIR)/plugin_upload.py
 
 # translation
 SOURCES = bulkvectorexport.py ui_bulkvectorexport.py __init__.py bulkvectorexportdialog.py
+#TRANSLATIONS = i18n/bulkvectorexport_en.ts
 TRANSLATIONS =
 
 # global
@@ -43,10 +44,10 @@ default: compile
 compile: $(UI_FILES) $(RESOURCE_FILES)
 
 %_rc.py : %.qrc
-	pyrcc5 -o $*_rc.py  $<
+	pyrcc4 -o $*_rc.py  $<
 
 %.py : %.ui
-	pyuic5 -o $@ $<
+	pyuic4 -o $@ $<
 
 %.qm : %.ts
 	lrelease $<
@@ -101,4 +102,5 @@ transcompile: $(TRANSLATIONS:.ts=.qm)
 
 clean:
 	rm $(UI_FILES) $(RESOURCE_FILES)
+
 

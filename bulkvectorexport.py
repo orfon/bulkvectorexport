@@ -26,10 +26,11 @@ from builtins import str
 from builtins import range
 from builtins import object
 from qgis.PyQt import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
+from qgis.PyQt.QtCore import *
 from qgis.core import (Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeatureRequest, QgsVectorLayer, QgsRasterLayer,  QgsMapLayerProxyModel, QgsProject, QgsRasterProjector, QgsProcessingAlgorithm, QgsProcessingParameterNumber, QgsProcessingParameterFeatureSource,QgsProcessingParameterFeatureSink)
 from qgis import processing
 from osgeo import ogr
+from osgeo import gdal,gdalconst,osr
 from qgis.core import *
 import qgis.utils
 import os
@@ -157,7 +158,7 @@ class BulkVectorExport(object):
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
-        result = self.dlg.exec_()
+        result = self.dlg.exec()
         # See if OK was pressed
         if result == 1:
             # get target directory
@@ -190,19 +191,19 @@ class BulkVectorExport(object):
                     hasIcon = False
                     print('Writing: ' + str(layer.name()))
                     layer_filename_r = tempPath + str(uuid.uuid4()) + '.tif'
+                    layer_filename_r_sld = layer_filename_r[:-4]
                     print('Filename: ' + layer_filename_r)
+                    print(self.dlg.update_compression(self))
                     src_crs = QgsProcessingFeatureSourceDefinition()
                     dst_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-                    source_path = " -of GTiff " + provider.dataSourceUri()
-                    algresult = processing.run("gdal:warpreproject", {
-                        'INPUT': str(layer.name()),
-                        'SOURCE_CRS': str(layer.name()),
-                        'TARGET_CRS': dst_crs,
-                        'RESAMPLING': 1,
-                        'NODATA': 999,
-                        'OPTIONS': "COMPRESS=NONE",
-                        'DATA_TYPE': 0,
+                    source_path = provider.dataSourceUri()
+                    algresult = qgis.processing.run("gdal:translate", {
+                        'OPTIONS': self.dlg.update_compression(self),
+                        'RESAMPLING': 0,
                         'MULTITHREADING': True,
+                        'TILED': 'YES',
+                        'INPUT': str(layer.name()),
+                        'outputSRS': dst_crs,
                         'OUTPUT': layer_filename_r})
                     result4 = algresult['OUTPUT']
                     print("geotiff export Status: " + str(result4))
@@ -210,12 +211,21 @@ class BulkVectorExport(object):
                         QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
                             "Failed to export: " + layer.name() + \
                             "Status: " + str(result4))
+                    # sld for raster layer
+                    sld_filename = os.path.join(tempPath, os.path.basename(layer_filename_r_sld) + '.sld')
                     result5 = False
+                    layer.saveSldStyle(sld_filename)
                     mapInfo['layers'].append({
                         "title": str(layer.name()),
-                        "geotiff": os.path.basename(layer_filename_r) # + '.tif'
+                        "geotiff": os.path.basename(layer_filename_r),
+                        "sld": os.path.basename(sld_filename),
+                        ## opacity value has to be rounded, otherwise python 3.6 writes 0.99 instead of 1.0
+                        "opacity":  round(1 - (layer.opacity() / 100.0), 1),
+                        "hasIcon": hasIcon
                     })
                     fileNames.append(layer_filename_r)
+                    fileNames.append(sld_filename)
+
                 elif layerType == QgsMapLayer.VectorLayer:
                     renderer = layer.renderer()
                     hasIcon = False
@@ -235,6 +245,7 @@ class BulkVectorExport(object):
                     save_options.layerName = layer_filename
                     save_options.ct = QgsCoordinateTransform(ref_crs,dest_crs,coordinateTransformContext)
                     save_options.fileEncoding = "UTF-8"
+                    save_options.layerOptions = ['COORDINATE_PRECISION=6']
                     result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormatV2(layer, layer_filename, context, save_options)
                     print("Status: " + str(result2))
                     if result2[0] != 0:
@@ -257,33 +268,6 @@ class BulkVectorExport(object):
                     fileNames.append(sld_filename)
                     print(fileNames)
 
-            ## initial bounding box is visible extent
-            canvas = self.iface.mapCanvas()
-            canvasExtent = canvas.extent()
-            crsDest = QgsCoordinateReferenceSystem("EPSG:4326")
-            try:
-                crsSrc = canvas.mapSettings().destinationCrs()
-            except:
-                crsSrc = canvas.mapRenderer().destinationCrs()
-            xform = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
-            canvasExtentTransformed = xform.transform(canvasExtent)
-
-            initialBounds = [canvasExtentTransformed.xMinimum(), canvasExtentTransformed.yMinimum(),
-                            canvasExtentTransformed.xMaximum(), canvasExtentTransformed.yMaximum()]
-
-            mapInfo['bounds'] = bounds(layers)
-            mapInfo['maxZoom'] = 11;
-            mapInfo['minZoom'] = 6;
-            mapInfo['description'] = "";
-            mapInfo['attribution'] = "";
-            mapInfo['popupTemplate'] = "";
-            mapInfo['initialBounds'] = initialBounds;
-            mapInfo['limitedInitialBounds'] = False
-            mapInfo['popupLayerIndex'] = -1;
-            mapInfo['hasLayerControl'] = True
-            mapInfo['hasZoomControl'] = True
-            mapInfo['hasLayerLegend'] = True
-            mapInfo['basemap'] = 'bmapgrau';
             map_filename = tempPath + 'metadata.json'
             with open(map_filename, 'w') as outfile:
                 json.dump(mapInfo, outfile)

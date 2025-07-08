@@ -2,12 +2,7 @@
 """
 /***************************************************************************
  BulkVectorExportDialog
-                                 A QGIS plugin
- Export map contents to specified format and CRS
-                             -------------------
-        begin                : 2013-01-21
-        copyright            : (C) 2013 by ViaMap Ltd.
-        email                : info@viamap.hu
+ 
  ***************************************************************************/
 
 /***************************************************************************
@@ -24,7 +19,6 @@ from builtins import str
 from qgis.PyQt import QtCore, QtGui, QtWidgets
 from .ui_bulkvectorexport import Ui_BulkVectorExportDialog
 from osgeo import ogr
-# create the dialog for zoom to point
 
 
 class BulkVectorExportDialog(QtWidgets.QDialog):
@@ -37,7 +31,27 @@ class BulkVectorExportDialog(QtWidgets.QDialog):
         self.ui.dirButton.clicked.connect(self.getDir)
         self.unsupportedDriverList = ['Memory', 'PostgreSQL', 'MySQL', 'ODBC', \
             'S57']
-
+        self.ui.compression_no.toggled.connect(self.update_compression)
+        self.ui.compression_lzw.toggled.connect(self.update_compression)
+        self.ui.compression_jpeg.toggled.connect(self.update_compression)
+        
     def getDir(self):
         dirName = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.ui.dirEdit.setText(dirName)
+        
+    def update_compression(self, checked):
+        if not checked:
+            return
+        if self.ui.compression_no.isChecked():
+            tiffCompression = 'COMPRESS=NONE'
+            print(tiffCompression)
+            return tiffCompression
+        if self.ui.compression_lzw.isChecked():
+            tiffCompression = 'COMPRESS=DEFLATE'
+            print(tiffCompression)
+            return tiffCompression
+        if self.ui.compression_jpeg.isChecked():
+            tiffCompression = 'COMPRESS=JPEG'
+            print(tiffCompression)
+            return tiffCompression
+            
