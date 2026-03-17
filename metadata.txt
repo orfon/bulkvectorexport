@@ -1,9 +1,9 @@
 [general]
 name=Bulk vector export as SLD and GeoJson
 qgisMinimumVersion=3.10.3
-qgisMaximumVersion=3.99
+qgisMaximumVersion=4.99
 description=Export all vector layers as GeoJSON and SLD.
-version=0.7
+version=0.7.3
 author=Simon Oberhammer, Günter Hack
 email=simon.oberhammer@orf.at
 
@@ -22,10 +22,10 @@ experimental=False
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
-# Qt6
-supportsQt6=True
-
 changelog=
+	0.7.3 Bugfixes
+	0.7.2 qgisMaximumVersion in metadata.txt bumped to 4.99 in order to be discoverable by QGIS 4.x
+	0.7.1 Bugfixes
 	0.7 Enabled Qt6 
 	0.6.8 COORDINATE_PRECISION for GeoJSON vector layer export dialled down from 15 to 6
 	0.6.7 Bugfix: Raster output does not change nodata values
