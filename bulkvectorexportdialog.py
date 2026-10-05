@@ -18,8 +18,6 @@
 from builtins import str
 from qgis.PyQt import QtCore, QtGui, QtWidgets
 from .ui_bulkvectorexport import Ui_BulkVectorExportDialog
-from osgeo import ogr
-
 
 class BulkVectorExportDialog(QtWidgets.QDialog):
     def __init__(self):
@@ -47,11 +45,11 @@ class BulkVectorExportDialog(QtWidgets.QDialog):
             print(tiffCompression)
             return tiffCompression
         if self.ui.compression_lzw.isChecked():
-            tiffCompression = 'COMPRESS=DEFLATE'
+            tiffCompression = 'COMPRESS=DEFLATE|PREDICTOR=2'
             print(tiffCompression)
             return tiffCompression
         if self.ui.compression_jpeg.isChecked():
-            tiffCompression = 'COMPRESS=JPEG'
+            tiffCompression = 'COMPRESS=JPEG|JPEG_QUALITY=75'
             print(tiffCompression)
             return tiffCompression
             

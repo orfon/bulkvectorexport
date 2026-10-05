@@ -19,18 +19,11 @@
  *                                                                         *
  ***************************************************************************/
 """
-from __future__ import print_function
-from __future__ import absolute_import
 # Import the PyQt and QGIS libraries
-from builtins import str
-from builtins import range
-from builtins import object
+
 from qgis.PyQt import QtCore, QtGui, QtWidgets
 from qgis.PyQt.QtCore import *
-from qgis.core import (Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsFeatureRequest, QgsVectorLayer, QgsRasterLayer,  QgsMapLayerProxyModel, QgsProject, QgsRasterProjector, QgsProcessingAlgorithm, QgsProcessingParameterNumber, QgsProcessingParameterFeatureSource,QgsProcessingParameterFeatureSink)
-from qgis import processing
-from osgeo import ogr
-from osgeo import gdal,gdalconst,osr
+from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject)
 from qgis.core import *
 import qgis.utils
 import os
@@ -42,7 +35,6 @@ import json
 import zipfile
 import tempfile
 import shutil
-import glob
 import uuid
 
 
@@ -88,25 +80,6 @@ def bounds(layers):
 
     return (extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum())
     print("Bounds: " + str(bounds(layers)))
-
-def copySymbols(symbol, tempPath, fileNames):
-    for i in range(symbol.symbolLayerCount()):
-        sl = symbol.symbolLayer(i)
-        if isinstance(sl, QgsSvgMarkerSymbolLayer):
-             symbolPath = sl.path();
-             shutil.copy(symbolPath, tempPath)
-             print("Copying " + str(sl.path()))
-             fileNames.append(tempPath + os.sep + os.path.basename(symbolPath))
-        # SVG im Projektverzeichnis abholen
-        elif isinstance(sl, QgsLineSymbolLayer):
-             projFile = QFileInfo(QgsProject.instance().fileName());
-             symbolLinePath = projFile.absolutePath();
-             for svgfile in glob.iglob(os.path.join(symbolLinePath, "*.svg")):
-                shutil.copy(svgfile, tempPath)
-                print("Copying")
-                fileNames.append(svgfile)
-        else:
-            print("Ignoring " + str(sl))
 
 class BulkVectorExport(object):
 
@@ -194,14 +167,10 @@ class BulkVectorExport(object):
                     layer_filename_r_sld = layer_filename_r[:-4]
                     print('Filename: ' + layer_filename_r)
                     print(self.dlg.update_compression(self))
-                    src_crs = QgsProcessingFeatureSourceDefinition()
                     dst_crs = QgsCoordinateReferenceSystem("EPSG:4326")
                     source_path = provider.dataSourceUri()
                     algresult = qgis.processing.run("gdal:translate", {
                         'OPTIONS': self.dlg.update_compression(self),
-                        'RESAMPLING': 0,
-                        'MULTITHREADING': True,
-                        'TILED': 'YES',
                         'INPUT': str(layer.name()),
                         'outputSRS': dst_crs,
                         'OUTPUT': layer_filename_r})
@@ -220,7 +189,7 @@ class BulkVectorExport(object):
                         "geotiff": os.path.basename(layer_filename_r),
                         "sld": os.path.basename(sld_filename),
                         ## opacity value has to be rounded, otherwise python 3.6 writes 0.99 instead of 1.0
-                        "opacity":  round(1 - (layer.opacity() / 100.0), 1),
+                        "opacity": round(layer.opacity(), 2),
                         "hasIcon": hasIcon
                     })
                     fileNames.append(layer_filename_r)
@@ -229,11 +198,8 @@ class BulkVectorExport(object):
                 elif layerType == QgsMapLayer.VectorLayer:
                     renderer = layer.renderer()
                     hasIcon = False
-                    if isinstance(renderer, QgsSingleSymbolRenderer):
-                        copySymbols(renderer.symbol(), tempPath, fileNames)
-                        hasIcon = True
                     print('Writing:' + str(layer.name()))
-                    layer_filename = tempPath + str(uuid.uuid4())
+                    layer_filename = str(uuid.uuid4())
                     print('Filename: ' + layer_filename)
                     coordinateTransformContext = QgsProject.instance().transformContext()
                     context = QgsCoordinateTransformContext()
@@ -246,7 +212,7 @@ class BulkVectorExport(object):
                     save_options.ct = QgsCoordinateTransform(ref_crs,dest_crs,coordinateTransformContext)
                     save_options.fileEncoding = "UTF-8"
                     save_options.layerOptions = ['COORDINATE_PRECISION=6']
-                    result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormatV2(layer, layer_filename, context, save_options)
+                    result2 = qgis.core.QgsVectorFileWriter.writeAsVectorFormatV3(layer, layer_filename, context, save_options)
                     print("Status: " + str(result2))
                     if result2[0] != 0:
                         QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
@@ -261,8 +227,8 @@ class BulkVectorExport(object):
                         "geojson": os.path.basename(layer_filename) + '.geojson',
                         "sld": os.path.basename(sld_filename),
                         ## opacity value has to be rounded, otherwise python 3.6 writes 0.99 instead of 1.0
-                        "opacity":  round(1 - (layer.opacity() / 100.0), 1),
-                        "hasIcon": hasIcon
+                        "opacity": round(layer.opacity(), 2),
+                        "hasIcon": False
                     })
                     fileNames.append(layer_filename + '.geojson')
                     fileNames.append(sld_filename)
@@ -274,13 +240,9 @@ class BulkVectorExport(object):
 
             fileNames.append(map_filename)
 
-            ## if .svg file present, add to packlist
-            for svgfile in os.listdir(tempPath):
-                if svgfile.endswith(".svg"):
-                    fileNames.append(tempPath + svgfile)
-
-            ## zip all
-            zf = zipfile.ZipFile(dirName +  os.sep + os.path.basename(str(project.fileName())) + '.globus.zip', "w")
+            ## zip all, fallback name for unsaved project is "untitled"
+            project_name = os.path.basename(project.fileName()) or "untitled"
+            zf = zipfile.ZipFile(dirName +  os.sep + project_name + '.globus.zip', "w")
 
             for fileName in fileNames:
                 zf.write(os.path.join(fileName), arcname=os.path.split(fileName)[1])
@@ -288,5 +250,5 @@ class BulkVectorExport(object):
 
             shutil.rmtree(tempPath, ignore_errors=True, onerror=None)
             zf.close()
-            QtWidgets.QMessageBox.warning(self.dlg, "BulkVectorExport",\
+            QtWidgets.QMessageBox.information(self.dlg, "BulkVectorExport",\
                 "Export successful!")
