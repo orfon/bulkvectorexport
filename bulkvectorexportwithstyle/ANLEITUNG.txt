@@ -1,0 +1,200 @@
+https://docs.qgis.org/3.10/en/docs/user_manual/processing/console.html
+
+
+processing.runalg('gdalogr:translate',{"INPUT":rlayer, "OUTSIZE":j, "OUTSIZE_PERC":False, "EXPAND":0, "EXTRA": "-r {bilinear}","PROJWIN":"%f,%f,%f,%f" % (xmin, xmax, ymin, ymax), "OUTPUT":resampled})
+
+
+processing.runalg('gdalogr:warpreproject',{"INPUT":rlayer, "OUTSIZE":j, "OUTSIZE_PERC":False, "EXPAND":0, "EXTRA": "-r {bilinear}","PROJWIN":"%f,%f,%f,%f" % (xmin, xmax, ymin, ymax), "OUTPUT":resampled})
+
+
+processing.algorithmHelp("gdal:warpreproject")
+Transformieren (Reprojizieren) (gdal:warpreproject)
+
+
+----------------
+Input parameters
+----------------
+
+INPUT: Eingabelayer
+
+	Parameter type:	QgsProcessingParameterRasterLayer
+
+	Accepted data types:
+		- str: Layerkennung
+		- str: Layername
+		- str: Layerquelle
+		- QgsProperty
+		- QgsRasterLayer
+
+SOURCE_CRS: Quell-KBS
+
+	Parameter type:	QgsProcessingParameterCrs
+
+	Accepted data types:
+		- str: 'ProjectCrs'
+		- str: KBS-Kennung (z..B. 'EPSG:3111')
+		- str: KBS-PROJ.4 (z.B. 'PROJ4:…')
+		- str: KBS-WKT (z.B. 'WKT:…')
+		- str: Layerkennung. CRS des Layers wird verwendet.
+		- str: Layername. KBS des Layers wird verwendet.
+		- str: Layerquelle. KBS des Layers wird verwendet.
+		- QgsCoordinateReferenceSystem
+		- QgsMapLayer: KBS des Layers wird verwendet
+		- QgsProcessingFeatureSourceDefinition: KBS der Quelle wird verwendet
+		- QgsProperty
+
+TARGET_CRS: Ziel KBS
+
+	Parameter type:	QgsProcessingParameterCrs
+
+	Accepted data types:
+		- str: 'ProjectCrs'
+		- str: KBS-Kennung (z..B. 'EPSG:3111')
+		- str: KBS-PROJ.4 (z.B. 'PROJ4:…')
+		- str: KBS-WKT (z.B. 'WKT:…')
+		- str: Layerkennung. CRS des Layers wird verwendet.
+		- str: Layername. KBS des Layers wird verwendet.
+		- str: Layerquelle. KBS des Layers wird verwendet.
+		- QgsCoordinateReferenceSystem
+		- QgsMapLayer: KBS des Layers wird verwendet
+		- QgsProcessingFeatureSourceDefinition: KBS der Quelle wird verwendet
+		- QgsProperty
+
+RESAMPLING: Zu verwendende Abtastmethode
+
+	Parameter type:	QgsProcessingParameterEnum
+
+	Available values:
+		- 0: Nächster Nachbar
+		- 1: Bilinear
+		- 2: Kubisch
+		- 3: Kubisches Spline
+		- 4: Lanczos sinc mit Fensterfunktion
+		- 5: Mittel
+		- 6: Modus
+		- 7: Maximum
+		- 8: Minimum
+		- 9: Median
+		- 10: Erstes Viertel
+		- 11: Drittes Viertel
+
+	Accepted data types:
+		- int
+		- str: die Zeichenkettendarstellung einer ganzen Zahl, z.B. '1'
+		- QgsProperty
+
+NODATA: Leerwert der Ausgabekanäle
+
+	Parameter type:	QgsProcessingParameterNumber
+
+	Accepted data types:
+		- int
+		- float
+		- QgsProperty
+
+TARGET_RESOLUTION: Auflösung der Ausgabedatei in georeferenzierten Zieleinheiten
+
+	Parameter type:	QgsProcessingParameterNumber
+
+	Accepted data types:
+		- int
+		- float
+		- QgsProperty
+
+OPTIONS: Zusätzliche Erzeugungsoptionen
+
+	Parameter type:	QgsProcessingParameterString
+
+	Accepted data types:
+		- str
+		- QgsProperty
+
+DATA_TYPE: Ausgabedatentyp
+
+	Parameter type:	QgsProcessingParameterEnum
+
+	Available values:
+		- 0: Eingabelayerdatentyp verwenden
+		- 1: Byte
+		- 2: Int16
+		- 3: UInt16
+		- 4: UInt32
+		- 5: Int32
+		- 6: Float32
+		- 7: Float64
+		- 8: CInt16
+		- 9: CInt32
+		- 10: CFloat32
+		- 11: CFloat64
+
+	Accepted data types:
+		- int
+		- str: die Zeichenkettendarstellung einer ganzen Zahl, z.B. '1'
+		- QgsProperty
+
+TARGET_EXTENT: Georeferenzierte Ausdehnung der zu erzeugenden Ausgabedatei
+
+	Parameter type:	QgsProcessingParameterExtent
+
+	Accepted data types:
+		- str: komma-getrennte Liste von min. X, max. X, min. Y, max Y. Z.B. '4,10,101,105'
+		- str: Layerkennung. Ausdehnung des Layers wird verwendet.
+		- str: Layername. Ausdehnung des Layers wird verwendet.
+		- str: Layerquelle.  Ausdehnung des Layers wird verwendet.
+		- QgsMapLayer: Ausdehnung des Layers wird verwendet
+		- QgsProcessingFeatureSourceDefinition: Ausdehnung der Quelle wird verwendet
+		- QgsProperty
+		- QgsRectangle
+		- QgsReferencedRectangle
+		- QgsGeometry: bounding box of geometry is used
+
+TARGET_EXTENT_CRS: KBS der Zielrastermaße
+
+	Parameter type:	QgsProcessingParameterCrs
+
+	Accepted data types:
+		- str: 'ProjectCrs'
+		- str: KBS-Kennung (z..B. 'EPSG:3111')
+		- str: KBS-PROJ.4 (z.B. 'PROJ4:…')
+		- str: KBS-WKT (z.B. 'WKT:…')
+		- str: Layerkennung. CRS des Layers wird verwendet.
+		- str: Layername. KBS des Layers wird verwendet.
+		- str: Layerquelle. KBS des Layers wird verwendet.
+		- QgsCoordinateReferenceSystem
+		- QgsMapLayer: KBS des Layers wird verwendet
+		- QgsProcessingFeatureSourceDefinition: KBS der Quelle wird verwendet
+		- QgsProperty
+
+MULTITHREADING: Multithreaded Transformationsimplementierung verwenden
+
+	Parameter type:	QgsProcessingParameterBoolean
+
+	Accepted data types:
+		- bool
+		- int
+		- str
+		- QgsProperty
+
+EXTRA: Weitere Kommandozeilenparameter
+
+	Parameter type:	QgsProcessingParameterString
+
+	Accepted data types:
+		- str
+		- QgsProperty
+
+OUTPUT: Reprojiziert
+
+	Parameter type:	QgsProcessingParameterRasterDestination
+
+	Accepted data types:
+		- str
+		- QgsProperty
+		- QgsProcessingOutputLayerDefinition
+
+----------------
+Outputs
+----------------
+
+OUTPUT:  <QgsProcessingOutputRasterLayer>
+	Reprojiziert
