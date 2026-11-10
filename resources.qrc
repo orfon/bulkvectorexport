@@ -1,5 +1,0 @@
-<RCC>
-  <qresource prefix="/plugins/bulkvectorexportwithstyle" >
-     <file>icon.png</file>
-  </qresource>
-</RCC>
