@@ -199,7 +199,7 @@ class BulkVectorExport(object):
                     renderer = layer.renderer()
                     hasIcon = False
                     print('Writing:' + str(layer.name()))
-                    layer_filename = str(uuid.uuid4())
+                    layer_filename = tempPath + str(uuid.uuid4())
                     print('Filename: ' + layer_filename)
                     coordinateTransformContext = QgsProject.instance().transformContext()
                     context = QgsCoordinateTransformContext()
