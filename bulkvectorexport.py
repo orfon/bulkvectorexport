@@ -20,15 +20,23 @@
  ***************************************************************************/
 """
 # Import the PyQt and QGIS libraries
-
-from qgis.PyQt import QtCore, QtGui, QtWidgets
-from qgis.PyQt.QtCore import *
-from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject)
-from qgis.core import *
+from qgis import processing
+from qgis.PyQt.QtCore import QCoreApplication, Qt
+from qgis.PyQt import QtGui, QtCore, QtWidgets 
+from qgis.PyQt.QtWidgets import QAction, QMessageBox, QProgressDialog
+from qgis.core import (
+    QgsApplication,
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsCoordinateTransformContext,
+    QgsProject,
+    QgsMapLayer,
+    QgsRasterLayer,
+    QgsVectorFileWriter,
+    QgsVectorLayer,
+)
 import qgis.utils
 import os
-# Initialize Qt resources from file resources.py
-from . import resources_rc
 # Import the code for the dialog
 from .bulkvectorexportdialog import BulkVectorExportDialog
 import json
@@ -43,7 +51,7 @@ def bounds(layers):
     extent = None
     for layer in layers:
         layerType = layer.type()
-        if layerType == QgsMapLayer.RasterLayer:
+        if layerType == QgsMapLayer.LayerType.RasterLayer:
             provider_r = layer.dataProvider()
             layerExtent_r = provider_r.extent()
             print("Bounds provider.extent: " + str(provider_r.extent()))
@@ -64,7 +72,7 @@ def bounds(layers):
                 extent = layerExtent
             else:
                 extent.combineExtentWith(layerExtent)
-        elif layerType == QgsMapLayer.VectorLayer:
+        elif layerType == QgsMapLayer.LayerType.VectorLayer:
             transform = QgsCoordinateTransform(layer.crs(), QgsCoordinateReferenceSystem('EPSG:4326'), QgsProject.instance()) # WGS 84 / UTM zone 33N
             try:
                 layerExtent = transform.transform(layer.extent())
@@ -87,7 +95,7 @@ class BulkVectorExport(object):
         # Save reference to the QGIS interface
         self.iface = iface
         # initialize plugin directory
-        self.plugin_dir = QtCore.QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path() + "/python/plugins/bulkvectorexport"
+        self.plugin_dir = QtCore.QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path() + "/python/plugins/bulkvectorexportwithstyle"
         # initialize locale
         localePath = ""
         locale = QtCore.QSettings().value("locale/userLocale")[0:2]
@@ -109,21 +117,23 @@ class BulkVectorExport(object):
         self.epsg4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 
     def initGui(self):
+        self.plugin_dir = os.path.dirname(__file__)
+        icon_path = os.path.join(self.plugin_dir, 'icon.png')
         # Create action that will start plugin configuration
         self.action = QtWidgets.QAction(
-            QtGui.QIcon(':/plugins/bulkvectorexportwithstyle/icon.png'),
-            u"Bulk export vector layers",
+            QtGui.QIcon(icon_path),
+            u"Bulk export layers",
             self.iface.mainWindow())
         # connect the action to the run method
         self.action.triggered.connect(self.run)
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu(u"&Bulk vector export", self.action)
+        self.iface.addPluginToMenu(u"&Bulk layer export", self.action)
 
     def unload(self):
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(u"&Bulk vector export", self.action)
+        self.iface.removePluginMenu(u"&Bulk layer export", self.action)
         self.iface.removeToolBarIcon(self.action)
 
     # run method that performs all the real work
@@ -159,7 +169,7 @@ class BulkVectorExport(object):
             for layer in reversed(layers):
                 layerType = layer.type()
                 provider = layer.dataProvider()
-                if layerType == QgsMapLayer.RasterLayer and ".png" not in provider.dataSourceUri() :
+                if layerType == QgsMapLayer.LayerType.RasterLayer and layer.providerType() not in ("wms", "arcgismapserver", "wcs", "xyzvectortiles") :
                     renderer = layer.renderer()
                     hasIcon = False
                     print('Writing: ' + str(layer.name()))
@@ -195,7 +205,7 @@ class BulkVectorExport(object):
                     fileNames.append(layer_filename_r)
                     fileNames.append(sld_filename)
 
-                elif layerType == QgsMapLayer.VectorLayer:
+                elif layerType == QgsMapLayer.LayerType.VectorLayer:
                     renderer = layer.renderer()
                     hasIcon = False
                     print('Writing:' + str(layer.name()))

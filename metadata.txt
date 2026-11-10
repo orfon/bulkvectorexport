@@ -1,9 +1,9 @@
 [general]
 name=Bulk vector export as SLD and GeoJson
-qgisMinimumVersion=3.10.3
+qgisMinimumVersion=3.14
 qgisMaximumVersion=4.99
 description=Export all vector layers as GeoJSON and SLD.
-version=0.7.4
+version=0.8.1
 author=Simon Oberhammer, Günter Hack
 email=simon.oberhammer@orf.at
 
@@ -23,6 +23,9 @@ experimental=False
 deprecated=False
 
 changelog=
+	0.8.1 Bugfix: Temp path for Vector layers corrected
+	0.8 Bugfixes, improvements on QT6 conformity
+	0.7.5 Bugfixes
 	0.7.4 Bugfixes
 	0.7.3 Bugfixes
 	0.7.2 qgisMaximumVersion in metadata.txt bumped to 4.99 in order to be discoverable by QGIS 4.x
